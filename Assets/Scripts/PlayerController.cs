@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        Application.targetFrameRate = 60;
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         coll = GetComponent<Collider2D>();
@@ -35,11 +36,53 @@ public class PlayerController : MonoBehaviour
         life = hearts.Length;
     }
 
+     private void movement()
+    {
+        float xMov = joystick.Horizontal;
+
+        if (xMov > 0) {
+            rb.transform.Translate(xMov * speed * Time.deltaTime, 0, 0);
+            transform.localScale = new Vector2(1, 1);
+
+            if (state == State.idle) state = State.run;
+        } else if (xMov < 0) {
+            rb.transform.Translate(xMov * speed * Time.deltaTime, 0, 0);
+            transform.localScale = new Vector2(-1, 1);
+
+            if (state == State.idle) {} state = State.run;
+        } else if (xMov == 0 && state != State.jump && state != State.fall) {
+            state = State.idle;
+        }
+
+    }
+
+    private void movementKB() {
+        float xMovKB = Input.GetAxis("Horizontal");
+
+        if (xMovKB > 0) {
+            rb.transform.Translate(xMovKB * speed * Time.deltaTime, 0, 0);
+            transform.localScale = new Vector2(1, 1);
+
+            if (state == State.idle) state = State.run;
+        } else if (xMovKB < 0) {
+            rb.transform.Translate(xMovKB * speed * Time.deltaTime, 0, 0);
+            transform.localScale = new Vector2(-1, 1);
+
+            if (state == State.idle) state = State.run;
+        } else if (xMovKB == 0 && state != State.jump && state != State.fall) state = State.idle;
+        
+        if (Input.GetButtonDown("Jump") && coll.IsTouchingLayers(Ground) && state != State.jump && state != State.fall) {
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            state = State.jump;
+        }
+    }
+
 
     void Update()
     {
         anim.SetInteger("State", (int)state);
         movement();
+        // movementKB();
         VelocityState();
     }
 
@@ -83,7 +126,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //spike toucking trigger
-        if ((other.gameObject.tag == "Spike"))
+        if (other.gameObject.tag == "Spike")
         {
             takeDamage();
             if (other.gameObject.transform.position.x > transform.position.x) {
@@ -102,12 +145,12 @@ public class PlayerController : MonoBehaviour
         }
 
         if (other.gameObject.tag == "FinishFlag") {
-            SceneManager.LoadScene(2);
+            SceneManager.LoadScene(3);
         }
 
         if (other.gameObject.tag == "FinishFlag_2")
         {
-            SceneManager.LoadScene(3);
+            SceneManager.LoadScene(4);
         }
 
         if (other.gameObject.tag == "Finish_Flag_3")
@@ -143,23 +186,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void movement()
-    {
-        float xMov = joystick.Horizontal;
-
-        if (xMov > 0) {
-            rb.transform.Translate(xMov * speed * Time.deltaTime, 0, 0);
-            transform.localScale = new Vector2(1, 1);
-            if (state == State.idle) state = State.run;
-
-        } else if (xMov < 0) {
-            rb.transform.Translate(xMov * speed * Time.deltaTime, 0, 0);
-            transform.localScale = new Vector2(-1, 1);
-
-            if (state == State.idle) state = State.run;
-        } else if (xMov == 0 && state != State.jump && state != State.fall) state = State.idle;
-
-    }
 
     public void jumpButton() {
 
